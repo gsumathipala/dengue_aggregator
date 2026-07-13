@@ -1,0 +1,4 @@
+# Additional dependencies for the single-sequence analysis web app
+# (main.py's batch ingestion pipeline already needs rapidfuzz + numpy;
+# install those first if setting up from scratch)
+flask

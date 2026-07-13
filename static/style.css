@@ -1,0 +1,234 @@
+/* Dengue Aggregator - single-sequence analysis page
+   Palette + mark specs follow the project's dataviz skill: fixed categorical
+   slots for serotype identity, the fixed status scale for variant severity
+   (never themed), status colors always paired with icon+label since two of
+   the four sit below 3:1 contrast on the light surface by design. */
+
+:root {
+  --surface-1:      #fcfcfb;
+  --page-plane:     #f9f9f7;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --gridline:       #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+
+  /* categorical: serotype identity, fixed order, never repainted by rank */
+  --series-1: #2a78d6; /* DENV-1 blue   */
+  --series-2: #1baf7a; /* DENV-2 aqua   */
+  --series-3: #eda100; /* DENV-3 yellow */
+  --series-4: #008300; /* DENV-4 green  */
+  --series-5: #4a3aa7; /* violet - epitope overlay (single series) */
+
+  /* status: variant impact severity, fixed, never themed */
+  --status-good:     #0ca30c; /* MODIFIER */
+  --status-warning:  #fab219; /* LOW      */
+  --status-serious:  #ec835a; /* MODERATE */
+  --status-critical: #d03b3b; /* HIGH     */
+
+  --card-radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+
+    --series-1: #3987e5;
+    --series-2: #199e70;
+    --series-3: #c98500;
+    --series-4: #008300;
+    --series-5: #9085e9;
+
+    --status-good:     #0ca30c;
+    --status-warning:  #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #d03b3b;
+  }
+}
+:root[data-theme="dark"] {
+  --surface-1:      #1a1a19;
+  --page-plane:     #0d0d0d;
+  --text-primary:   #ffffff;
+  --text-secondary: #c3c2b7;
+  --gridline:       #2c2c2a;
+  --baseline:       #383835;
+  --border:         rgba(255,255,255,0.10);
+  --series-1: #3987e5; --series-2: #199e70; --series-3: #c98500; --series-4: #008300; --series-5: #9085e9;
+}
+:root[data-theme="light"] {
+  --surface-1:      #fcfcfb;
+  --page-plane:     #f9f9f7;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --gridline:       #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --series-1: #2a78d6; --series-2: #1baf7a; --series-3: #eda100; --series-4: #008300; --series-5: #4a3aa7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--page-plane);
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+header.page-header h1 { font-size: 22px; margin: 0 0 4px; }
+header.page-header p { color: var(--text-secondary); margin: 0 0 24px; font-size: 14px; }
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.card h2 { font-size: 15px; margin: 0 0 14px; color: var(--text-primary); }
+.card h2 .sub { font-weight: 400; color: var(--text-muted); font-size: 12px; margin-left: 8px; }
+
+textarea#seq-input {
+  width: 100%;
+  min-height: 140px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12.5px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--page-plane);
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+.input-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+
+button, .btn {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--page-plane);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+button.primary {
+  background: var(--series-1);
+  border-color: var(--series-1);
+  color: #fff;
+  font-weight: 600;
+}
+button:disabled { opacity: 0.5; cursor: default; }
+button:hover:not(:disabled) { filter: brightness(1.06); }
+
+.example-group { display: flex; gap: 6px; align-items: center; }
+.example-group span { font-size: 12px; color: var(--text-muted); margin-right: 4px; }
+
+#status-line { font-size: 12.5px; color: var(--text-secondary); margin-top: 8px; min-height: 1.2em; }
+
+/* Warnings */
+#warnings { display: none; }
+#warnings.show { display: block; }
+.warning-item {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px 12px; border-radius: 6px;
+  background: color-mix(in srgb, var(--status-warning) 14%, var(--surface-1));
+  border: 1px solid color-mix(in srgb, var(--status-warning) 40%, transparent);
+  font-size: 13px; margin-bottom: 8px;
+}
+.warning-item .icon { color: var(--status-warning); font-weight: 700; }
+
+/* Stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.tile { padding: 14px; border-radius: 8px; background: var(--page-plane); border: 1px solid var(--border); }
+.tile .label { font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
+.tile .value { font-size: 22px; font-weight: 600; }
+.tile .value .unit { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.tile .breakdown { margin-top: 6px; font-size: 11.5px; color: var(--text-secondary); display: flex; gap: 8px; flex-wrap: wrap; }
+.tile .breakdown span.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; }
+
+/* Serotype confidence bars */
+.sero-bars { display: flex; flex-direction: column; gap: 8px; }
+.sero-bar-row { display: flex; align-items: center; gap: 10px; }
+.sero-bar-row .sero-label { width: 92px; font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; }
+.sero-bar-row .sero-label.called { color: var(--text-primary); font-weight: 700; }
+.sero-bar-track { flex: 1; height: 18px; background: var(--gridline); border-radius: 4px; overflow: hidden; position: relative; }
+.sero-bar-fill { height: 100%; border-radius: 4px 0 0 4px; }
+.sero-bar-row .sero-value { width: 52px; text-align: right; font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.sero-bar-row.called .sero-value { color: var(--text-primary); font-weight: 700; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 4px; font-size: 12px; color: var(--text-secondary); }
+.legend .item { display: flex; align-items: center; gap: 6px; }
+.legend .swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend .band-swatch { width: 14px; height: 8px; border-radius: 2px; display: inline-block; }
+
+/* Genome map */
+#genome-map-wrap { overflow-x: auto; }
+#genome-map { display: block; }
+.protein-block rect { stroke: var(--surface-1); stroke-width: 2px; }
+.protein-block text { font-size: 9.5px; fill: var(--text-primary); }
+.variant-marker circle { stroke: var(--surface-1); stroke-width: 1.5px; cursor: pointer; }
+.coverage-uncovered { fill: url(#hatch-uncovered); }
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--text-primary);
+  color: var(--surface-1);
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  max-width: 260px;
+  z-index: 50;
+  display: none;
+  line-height: 1.4;
+}
+
+/* Tables */
+table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.data-table th, table.data-table td {
+  text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--gridline);
+  font-variant-numeric: tabular-nums;
+}
+table.data-table th {
+  color: var(--text-muted); font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer;
+  user-select: none;
+}
+table.data-table th:hover { color: var(--text-primary); }
+table.data-table tbody tr:hover { background: var(--page-plane); }
+.impact-badge {
+  display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 11.5px;
+}
+.impact-badge .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.novel-flag { color: var(--series-5); font-weight: 700; }
+.table-controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.table-controls select, .table-controls input[type=text] {
+  font: inherit; font-size: 12.5px; padding: 5px 8px; border-radius: 5px;
+  border: 1px solid var(--border); background: var(--page-plane); color: var(--text-primary);
+}
+.table-scroll { max-height: 420px; overflow-y: auto; overflow-x: auto; }
+
+.export-row { display: flex; gap: 8px; margin-top: 12px; }
+
+#results { display: none; }
+#results.show { display: block; }
+
+footer.note { font-size: 11.5px; color: var(--text-muted); margin-top: 24px; text-align: center; }

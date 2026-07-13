@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dengue Sequence Analyzer</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-header">
+    <h1>Dengue Sequence Analyzer</h1>
+    <p>Paste or upload a DENV sequence (complete genome or partial fragment) to get serotype
+       identification, per-variant annotation, known-variant/epitope cross-referencing, and
+       nearest-neighbor placement against the local 12,000+ genome reference database.
+       Nothing you submit is stored &mdash; each analysis is computed fresh and only exists in this
+       browser tab.</p>
+  </header>
+
+  <div class="card" id="input-card">
+    <h2>1. Input sequence</h2>
+    <textarea id="seq-input" placeholder="Paste a FASTA record (with or without a &gt;header) or raw nucleotide sequence here&hellip;"></textarea>
+    <div class="input-row">
+      <button class="btn" id="file-btn">Upload FASTA file</button>
+      <input type="file" id="file-input" accept=".fasta,.fa,.txt" style="display:none">
+      <div class="example-group">
+        <span>Load example:</span>
+        <button class="btn" data-example="1">DENV-1</button>
+        <button class="btn" data-example="2">DENV-2</button>
+        <button class="btn" data-example="3">DENV-3</button>
+        <button class="btn" data-example="4">DENV-4</button>
+      </div>
+      <button class="primary" id="analyze-btn">Analyze</button>
+    </div>
+    <div id="status-line"></div>
+  </div>
+
+  <div id="results">
+
+    <div id="warnings"></div>
+
+    <div class="card">
+      <h2>Summary</h2>
+      <div class="tiles" id="summary-tiles"></div>
+    </div>
+
+    <div class="card">
+      <h2>Serotype call <span class="sub">k-mer containment against each RefSeq reference</span></h2>
+      <div class="sero-bars" id="sero-bars"></div>
+    </div>
+
+    <div class="card">
+      <h2>Genome map <span class="sub">variant positions, coverage, and known epitopes</span></h2>
+      <div class="legend" id="map-legend"></div>
+      <div id="genome-map-wrap"></div>
+    </div>
+
+    <div class="card">
+      <h2>Variants <span class="sub" id="variant-count-sub"></span></h2>
+      <div class="table-controls">
+        <select id="filter-impact">
+          <option value="">All impacts</option>
+          <option value="HIGH">HIGH</option>
+          <option value="MODERATE">MODERATE</option>
+          <option value="LOW">LOW</option>
+          <option value="MODIFIER">MODIFIER</option>
+        </select>
+        <select id="filter-protein">
+          <option value="">All proteins</option>
+        </select>
+        <select id="filter-novel">
+          <option value="">Known + novel</option>
+          <option value="novel">Novel only</option>
+          <option value="known">Known only</option>
+        </select>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" id="variant-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="export-row">
+        <button class="btn" id="export-csv">Download variant table (CSV)</button>
+        <button class="btn" id="export-json">Download full report (JSON)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Nearest neighbors <span class="sub">closest genomes in the database by shared SNP profile</span></h2>
+      <div class="table-scroll">
+        <table class="data-table" id="neighbor-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="note">Local research tool &mdash; queries dengue_genomes.db read-only. Not for clinical diagnostic use.</footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

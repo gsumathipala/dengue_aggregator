@@ -1,0 +1,25 @@
+# Generated database (regenerate with main.py / annotate_variants.py / build_variant_catalog.py / load_epitopes.py)
+dengue_genomes.db
+*.db
+*.db-journal
+
+# Downloaded raw sequence/metadata files (regenerate with main.py --data-dir dengue_data)
+dengue_data/
+
+# Nearest-neighbor fingerprint cache (regenerate with build_fingerprints.py)
+fingerprint_cache/
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Local Claude Code tool settings (machine-specific paths, not project source)
+.claude/
+
+# OS cruft
+.DS_Store
+Thumbs.db
